@@ -1,5 +1,10 @@
 import { cookies } from "next/headers";
 import LocationSwitcher from "./location-switcher";
+import {
+  getCalendarEvents,
+  formatEventTime,
+  sourceColorClass,
+} from "@/lib/calendar";
 
 type Location = {
   lat: number;
@@ -70,7 +75,10 @@ function describeWeather(code: number): { emoji: string; label: string } {
 
 export default async function Home() {
   const location = await getLocation();
-  const weather = await getWeather(location);
+  const [weather, events] = await Promise.all([
+    getWeather(location),
+    getCalendarEvents(),
+  ]);
   const condition = describeWeather(weather.code);
 
   const now = new Date();
@@ -139,20 +147,26 @@ export default async function Home() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Today
           </h2>
-          <ul className="mt-3 space-y-3 text-zinc-900 dark:text-zinc-100">
-            <li className="flex gap-4">
-              <span className="font-mono text-sm text-zinc-500 dark:text-zinc-400 w-24 shrink-0 pt-0.5">
-                15:30–16:00
-              </span>
-              <span>Weekly Finance Update</span>
-            </li>
-            <li className="flex gap-4">
-              <span className="font-mono text-sm text-zinc-500 dark:text-zinc-400 w-24 shrink-0 pt-0.5">
-                18:00–20:00
-              </span>
-              <span>Envision Monthly Webinars</span>
-            </li>
-          </ul>
+          {events.length === 0 ? (
+            <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+              Nothing on the calendar today.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-3 text-zinc-900 dark:text-zinc-100">
+              {events.map((event, i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${sourceColorClass(event.source.color)}`}
+                    title={event.source.name}
+                  />
+                  <span className="font-mono text-sm text-zinc-500 dark:text-zinc-400 w-24 shrink-0">
+                    {formatEventTime(event)}
+                  </span>
+                  <span>{event.summary}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </main>
     </div>
