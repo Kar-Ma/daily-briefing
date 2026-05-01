@@ -37,6 +37,14 @@ function getSources(): SourceConfig[] {
   return sources;
 }
 
+function asString(
+  v: string | { val: string; params: Record<string, string> } | undefined
+): string | undefined {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object" && "val" in v) return v.val;
+  return undefined;
+}
+
 async function fetchSource(source: SourceConfig): Promise<CalendarEvent[]> {
   try {
     const res = await fetch(source.url, { cache: "no-store" });
@@ -54,8 +62,9 @@ async function fetchSource(source: SourceConfig): Promise<CalendarEvent[]> {
 
     for (const key in data) {
       const item = data[key];
-      if (item.type !== "VEVENT") continue;
+      if (!item || item.type !== "VEVENT") continue;
       const event = item as ical.VEvent;
+      if (!event.start || !event.end) continue;
 
       const allDay = event.datetype === "date";
 
@@ -66,8 +75,8 @@ async function fetchSource(source: SourceConfig): Promise<CalendarEvent[]> {
           events.push({
             start: instanceStart,
             end: new Date(instanceStart.getTime() + duration),
-            summary: event.summary || "(no title)",
-            location: event.location,
+            summary: asString(event.summary) || "(no title)",
+            location: asString(event.location),
             allDay,
             source: sourceTag,
           });
@@ -77,8 +86,8 @@ async function fetchSource(source: SourceConfig): Promise<CalendarEvent[]> {
           events.push({
             start: event.start,
             end: event.end,
-            summary: event.summary || "(no title)",
-            location: event.location,
+            summary: asString(event.summary) || "(no title)",
+            location: asString(event.location),
             allDay,
             source: sourceTag,
           });

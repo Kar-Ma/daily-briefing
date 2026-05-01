@@ -79,17 +79,20 @@ async function fetchAndCurateHeadlines(model: string): Promise<Headline[]> {
     const parsed = parseJSON(response);
     if (!parsed?.headlines || !Array.isArray(parsed.headlines)) return [];
 
-    return parsed.headlines.slice(0, 3).map((h: {
-      title?: string;
-      summary?: string;
-      source?: string;
-      url?: string;
-    }) => ({
-      title: h.title ?? "(no title)",
-      description: h.summary ?? "",
-      source: h.source ?? "",
-      url: h.url ?? "",
-    }));
+    return parsed.headlines.slice(0, 3).map((raw) => {
+      const h = raw as {
+        title?: string;
+        summary?: string;
+        source?: string;
+        url?: string;
+      };
+      return {
+        title: h.title ?? "(no title)",
+        description: h.summary ?? "",
+        source: h.source ?? "",
+        url: h.url ?? "",
+      };
+    });
   } catch (e) {
     console.error("News curation failed:", e);
     return [];
