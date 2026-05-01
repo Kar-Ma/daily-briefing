@@ -102,9 +102,6 @@ export default async function Home() {
                         {h.description}
                       </p>
                     )}
-                    <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                      {h.source}
-                    </p>
                   </div>
                 </li>
               ))}
