@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import LocationSwitcher from "./location-switcher";
 import {
   getCalendarEvents,
+  getCalendarSummary,
   formatEventTime,
   sourceColorClass,
 } from "@/lib/calendar";
@@ -81,6 +82,7 @@ export default async function Home() {
     getCalendarEvents(),
     getHeadlines(),
   ]);
+  const calendarSummary = await getCalendarSummary(events);
   const condition = describeWeather(weather.code);
 
   const now = new Date();
@@ -168,11 +170,7 @@ export default async function Home() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Today
           </h2>
-          {events.length === 0 ? (
-            <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
-              Nothing on the calendar today.
-            </p>
-          ) : (
+          {events.length > 0 && (
             <ul className="mt-3 space-y-3 text-zinc-900 dark:text-zinc-100">
               {events.map((event, i) => (
                 <li key={i} className="flex items-center gap-3">
@@ -187,6 +185,23 @@ export default async function Home() {
                 </li>
               ))}
             </ul>
+          )}
+          {calendarSummary ? (
+            <p
+              className={`text-sm text-zinc-600 dark:text-zinc-400 ${
+                events.length > 0
+                  ? "mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800"
+                  : "mt-3"
+              }`}
+            >
+              {calendarSummary}
+            </p>
+          ) : (
+            events.length === 0 && (
+              <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                Nothing on the calendar today.
+              </p>
+            )
           )}
         </section>
       </main>

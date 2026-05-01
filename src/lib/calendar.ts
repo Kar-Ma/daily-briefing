@@ -1,4 +1,6 @@
 import * as ical from "node-ical";
+import { unstable_cache } from "next/cache";
+import { callLLM } from "./llm";
 
 export type CalendarSource = {
   name: string;
@@ -70,7 +72,7 @@ async function fetchSource(source: SourceConfig): Promise<CalendarEvent[]> {
           });
         }
       } else {
-        if (event.start <= dayEnd && event.end >= dayStart) {
+        if (event.start <= dayEnd && event.end > dayStart) {
           events.push({
             start: event.start,
             end: event.end,
@@ -122,4 +124,74 @@ const COLOR_CLASSES: Record<string, string> = {
 
 export function sourceColorClass(color: string): string {
   return COLOR_CLASSES[color] || "bg-zinc-400";
+}
+
+const SUMMARY_CACHE_SECONDS = 60 * 60 * 24;
+const SUMMARY_FALLBACK_MODEL = "claude-haiku-4-5-20251001";
+
+async function generateCalendarSummary(
+  events: CalendarEvent[],
+  model: string
+): Promise<string> {
+  const eventsForPrompt = events.map((e) => ({
+    time: e.allDay
+      ? "all day"
+      : `${e.start.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}–${e.end.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`,
+    summary: e.summary,
+    location: e.location,
+    source: e.source.name,
+  }));
+
+  const systemPrompt =
+    "You write a short, warm closing message for a daily briefing's calendar section. The tone is like a friendly personal assistant who knows the user well — not formal, not overly cheerful, just observational and human.";
+
+  const prompt = `Look at today's calendar (${eventsForPrompt.length} event${eventsForPrompt.length === 1 ? "" : "s"}) and write a 1–2 sentence closing message that:
+1. Captures the shape of the day (empty / light / busy / scattered / packed)
+2. Notes something specific or human (a free morning, a fun event, a long stretch, etc.)
+3. Has a warm, conversational tone — like a personal assistant signing off
+
+Keep it under 25 words. Plain prose only — no bullets, no headers, no quotes around your output. May include one fitting emoji if it adds something.
+
+Tone reference (match the vibe, do not copy):
+- "Clear day — nothing on the books. Enjoy the long weekend. 🎉"
+- "Busy afternoon into evening — and a movie to cap it off. Have a good one!"
+- "One meeting in the afternoon — morning's all yours. Have a good one!"
+
+Today's events:
+${JSON.stringify(eventsForPrompt, null, 2)}`;
+
+  try {
+    const response = await callLLM({
+      prompt,
+      systemPrompt,
+      model,
+      maxTokens: 120,
+    });
+    return response.trim().replace(/^["']|["']$/g, "");
+  } catch (e) {
+    console.error("Calendar summary failed:", e);
+    return "";
+  }
+}
+
+const getCachedSummary = unstable_cache(
+  generateCalendarSummary,
+  ["calendar-summary"],
+  { revalidate: SUMMARY_CACHE_SECONDS }
+);
+
+export async function getCalendarSummary(
+  events: CalendarEvent[]
+): Promise<string> {
+  const model =
+    process.env.CALENDAR_MODEL ||
+    process.env.DEFAULT_LLM_MODEL ||
+    SUMMARY_FALLBACK_MODEL;
+  return getCachedSummary(events, model);
 }
