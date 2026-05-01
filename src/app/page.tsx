@@ -5,6 +5,7 @@ import {
   formatEventTime,
   sourceColorClass,
 } from "@/lib/calendar";
+import { getHeadlines } from "@/lib/news";
 
 type Location = {
   lat: number;
@@ -75,9 +76,10 @@ function describeWeather(code: number): { emoji: string; label: string } {
 
 export default async function Home() {
   const location = await getLocation();
-  const [weather, events] = await Promise.all([
+  const [weather, events, headlines] = await Promise.all([
     getWeather(location),
     getCalendarEvents(),
+    getHeadlines(),
   ]);
   const condition = describeWeather(weather.code);
 
@@ -127,20 +129,39 @@ export default async function Home() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Top Headlines
           </h2>
-          <ol className="mt-3 space-y-3 text-zinc-900 dark:text-zinc-100">
-            <li className="flex gap-3">
-              <span className="text-zinc-400 font-mono text-sm pt-0.5">1</span>
-              <span>Placeholder headline number one will go here.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-zinc-400 font-mono text-sm pt-0.5">2</span>
-              <span>Placeholder headline number two will go here.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-zinc-400 font-mono text-sm pt-0.5">3</span>
-              <span>Placeholder headline number three will go here.</span>
-            </li>
-          </ol>
+          {headlines.length === 0 ? (
+            <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+              Headlines unavailable — check your API keys in <code>.env.local</code>.
+            </p>
+          ) : (
+            <ol className="mt-3 space-y-4 text-zinc-900 dark:text-zinc-100">
+              {headlines.map((h, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="text-zinc-400 font-mono text-sm pt-1 shrink-0">
+                    {i + 1}
+                  </span>
+                  <div className="space-y-1">
+                    <a
+                      href={h.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                      {h.title}
+                    </a>
+                    {h.description && (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        {h.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                      {h.source}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
         </section>
 
         <section className="rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-800">
