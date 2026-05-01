@@ -93,7 +93,7 @@ export default async function Home() {
                       href={h.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      className="font-bold hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       {h.title}
                     </a>
