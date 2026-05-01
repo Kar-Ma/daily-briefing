@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { callLLM } from "./llm";
+import { newsPrompt } from "./prompts";
 
 export type Headline = {
   title: string;
@@ -65,32 +66,12 @@ async function fetchAndCurateHeadlines(model: string): Promise<Headline[]> {
     breaking: a.breaking,
   }));
 
-  const systemPrompt =
-    "You are an editor curating a personal morning briefing. Identify the most globally significant news stories from a list of recent articles and summarize them in a punchy, contextual style.";
-
-  const prompt = `From these articles published in the last 24 hours, pick the 3 most globally important. For each, write:
-- A punchy, declarative title (rewrite the original if it's weak, generic, or clickbait)
-- A 1–2 sentence summary that says what happened AND why it matters (include specific names, numbers, or context where helpful)
-
-Prioritize: world events, major politics, economics, science, technology breakthroughs, significant societal stories.
-De-prioritize: sports, celebrity gossip, local US stories without broader implications.
-
-Return ONLY a JSON object in this exact shape, no surrounding text or markdown:
-{
-  "headlines": [
-    { "title": "...", "summary": "...", "source": "...", "url": "..." }
-  ]
-}
-
-Preserve the source and url from the original article you pick.
-
-Articles:
-${JSON.stringify(trimmed, null, 2)}`;
+  const { system, prompt } = newsPrompt(trimmed);
 
   try {
     const response = await callLLM({
       prompt,
-      systemPrompt,
+      systemPrompt: system,
       model,
       maxTokens: 1024,
     });

@@ -1,6 +1,7 @@
 import * as ical from "node-ical";
 import { unstable_cache } from "next/cache";
 import { callLLM } from "./llm";
+import { calendarSummaryPrompt } from "./prompts";
 
 export type CalendarSource = {
   name: string;
@@ -148,28 +149,12 @@ async function generateCalendarSummary(
     source: e.source.name,
   }));
 
-  const systemPrompt =
-    "You write a short, warm closing message for a daily briefing's calendar section. The tone is like a friendly personal assistant who knows the user well — not formal, not overly cheerful, just observational and human.";
-
-  const prompt = `Look at today's calendar (${eventsForPrompt.length} event${eventsForPrompt.length === 1 ? "" : "s"}) and write a 1–2 sentence closing message that:
-1. Captures the shape of the day (empty / light / busy / scattered / packed)
-2. Notes something specific or human (a free morning, a fun event, a long stretch, etc.)
-3. Has a warm, conversational tone — like a personal assistant signing off
-
-Keep it under 25 words. Plain prose only — no bullets, no headers, no quotes around your output. May include one fitting emoji if it adds something.
-
-Tone reference (match the vibe, do not copy):
-- "Clear day — nothing on the books. Enjoy the long weekend. 🎉"
-- "Busy afternoon into evening — and a movie to cap it off. Have a good one!"
-- "One meeting in the afternoon — morning's all yours. Have a good one!"
-
-Today's events:
-${JSON.stringify(eventsForPrompt, null, 2)}`;
+  const { system, prompt } = calendarSummaryPrompt(eventsForPrompt);
 
   try {
     const response = await callLLM({
       prompt,
-      systemPrompt,
+      systemPrompt: system,
       model,
       maxTokens: 120,
     });
