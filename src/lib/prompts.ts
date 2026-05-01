@@ -54,6 +54,35 @@ type CalendarEventForPrompt = {
   source: string;
 };
 
+type WeatherForPrompt = {
+  condition: string;
+  high: number;
+  low: number;
+  precipitation: number;
+};
+
+export function clothingPrompt(weather: WeatherForPrompt): PromptPair {
+  return {
+    system:
+      "You give a short, practical clothing recommendation based on today's weather. Tone: like a thoughtful friend, not a fashion magazine.",
+    prompt: `Today's weather:
+- Condition: ${weather.condition}
+- High: ${weather.high}°C
+- Low: ${weather.low}°C
+- Rain chance: ${weather.precipitation}%
+
+Write a 1-sentence clothing/wear recommendation under 14 words. Be specific (mention items by name) and include relevant accessories (umbrella, sunglasses, sunscreen) when appropriate.
+
+Tone reference (do not copy verbatim):
+- "Light jacket and umbrella — pack for showers."
+- "Sunglasses and shorts weather, sunscreen if you'll be outside."
+- "Winter coat, gloves, and a scarf — bundle up."
+- "Rainproof shell and waterproof shoes."
+
+Just the sentence. No quotes, no preamble.`,
+  };
+}
+
 export function calendarSummaryPrompt(
   events: CalendarEventForPrompt[]
 ): PromptPair {
