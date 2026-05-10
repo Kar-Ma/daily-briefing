@@ -28,10 +28,15 @@ export function newsPrompt(articles: NewsArticle[]): PromptPair {
       "You are an editor curating a personal morning briefing. Identify the most globally significant news stories from a list of recent articles and summarize them in a punchy, contextual style.",
     prompt: `From these articles published in the last 24 hours, pick the 3 most globally important. For each, write:
 - A punchy, declarative title (rewrite the original if it's weak, generic, or clickbait)
-- A 1–2 sentence summary that says what happened AND why it matters (include specific names, numbers, or context where helpful)
+- A SINGLE-sentence summary, 25–35 words MAX. Never two sentences. Write it like a short, natural news lede — favour normal commas and connectives. Reserve em-dashes for genuine parenthetical emphasis; do not sprinkle them in for stylistic effect. Don't write an explicit "why it matters" — let significance come through specific details (names, numbers, places, dollar amounts) you choose to include.
 
 Prioritize: world events, major politics, economics, science, technology breakthroughs, significant societal stories.
 De-prioritize: sports, celebrity gossip, local US stories without broader implications.
+
+Tone reference (match the LENGTH and matter-of-fact register, do not copy):
+- "After a scaled-back Victory Day parade, Putin suggested the war in Ukraine may be winding down and has reportedly reached out for talks via former German Chancellor Gerhard Schröder."
+- "Nigel Farage's Reform UK scored significant gains in UK local elections at the expense of both Labour and the Conservatives, with British bond markets calm for now but analysts warning of economic headwinds."
+- "As the US awaits Iran's response to a war-ending proposal, the Treasury sanctioned 10 individuals and companies, including several Chinese firms accused of helping Iran procure materials for ballistic missiles."
 
 Return ONLY a JSON object in this exact shape, no surrounding text or markdown:
 {
