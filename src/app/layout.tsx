@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,9 +12,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+};
+
 export const metadata: Metadata = {
   title: "Daily Briefing",
   description: "Your morning briefing — weather, news, and calendar.",
+  appleWebApp: {
+    capable: true,
+    title: "Briefing",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({
