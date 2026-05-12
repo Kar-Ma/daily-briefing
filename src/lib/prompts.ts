@@ -59,6 +59,22 @@ type CalendarEventForPrompt = {
   source: string;
 };
 
+export function quotePrompt(): PromptPair {
+  return {
+    system:
+      "You curate one stoic quote each morning. Tone: warm and considered, not pretentious.",
+    prompt: `Give me one stoic quote for today.
+
+Prefer real, attributed quotes from classical stoics (Marcus Aurelius, Epictetus, Seneca, Musonius Rufus) or respected modern stoic voices (Ryan Holiday, William Irvine). Vary across thinkers and themes over time — don't keep returning to the same author or idea.
+
+Output ONLY this JSON, no surrounding text or markdown:
+{
+  "quote": "the quote text, without surrounding quotation marks",
+  "attribution": "Author Name"
+}`,
+  };
+}
+
 type WeatherForPrompt = {
   condition: string;
   high: number;

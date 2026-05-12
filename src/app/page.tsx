@@ -12,6 +12,7 @@ import {
   sourceColorClass,
 } from "@/lib/calendar";
 import { getHeadlines } from "@/lib/news";
+import { getQuote } from "@/lib/quote";
 
 export default async function Home() {
   const location = await getLocation();
@@ -21,9 +22,10 @@ export default async function Home() {
     getHeadlines(),
   ]);
   const condition = describeWeather(weather.code);
-  const [calendarSummary, clothing] = await Promise.all([
+  const [calendarSummary, clothing, quote] = await Promise.all([
     getCalendarSummary(events),
     getClothingRecommendation(weather, condition.label),
+    getQuote(),
   ]);
 
   const now = new Date();
@@ -147,6 +149,22 @@ export default async function Home() {
             )
           )}
         </section>
+
+        {quote && (
+          <section className="rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-800">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Thought
+            </h2>
+            <blockquote className="mt-3 space-y-2">
+              <p className="text-base italic text-zinc-800 dark:text-zinc-200 leading-relaxed">
+                &ldquo;{quote.text}&rdquo;
+              </p>
+              <footer className="text-sm text-zinc-500 dark:text-zinc-400 not-italic">
+                — {quote.attribution}
+              </footer>
+            </blockquote>
+          </section>
+        )}
       </main>
     </div>
   );
