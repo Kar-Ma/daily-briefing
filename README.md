@@ -127,6 +127,10 @@ For typical personal use (one or two visits per day):
 
 The cache is the cost saver: each LLM-curated section runs once per calendar day, then serves from cache for the rest of the day.
 
+## Roadmap
+
+Planned cards and design directions live in [ROADMAP.md](ROADMAP.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
